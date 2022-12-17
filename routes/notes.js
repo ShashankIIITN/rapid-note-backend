@@ -6,14 +6,14 @@ const GetUser = require('../middleware/GetUser');
 const { findOne } = require('../models/Notes');
 
 //create-note : post
-router.post('/create-note',GetUser, [
+router.post('/create-note', GetUser, [
     body('title', "Title field cant be empty").exists(),
     body('description', "Description field cant be empty").exists()
 ], async (req, res) => {
 
     let valerrors = validationResult(req);
-    if (!valerrors.isEmpty()){
-        return res.status(400).json({ errors: valerrors.array()});
+    if (!valerrors.isEmpty()) {
+        return res.status(400).json({ errors: valerrors.array() });
     }
 
     let { title, description, tag } = req.body;
@@ -29,7 +29,7 @@ router.post('/create-note',GetUser, [
         let SvdNote = await note.save();
         res.json(SvdNote);
     } catch (error) {
-        res.status(401).send({error: error.message})
+        res.status(401).send({ error: error.message })
     }
 });
 
@@ -37,7 +37,7 @@ router.post('/create-note',GetUser, [
 // get-all-notes : get
 router.get('/get-allnote', GetUser, async (req, res) => {
 
-    const notes = await Notes.find({user: req.user.id});
+    const notes = await Notes.find({ user: req.user.id });
 
     res.json(notes);
 
@@ -47,25 +47,52 @@ router.get('/get-allnote', GetUser, async (req, res) => {
 
 router.put('/update-note/:id', GetUser, async (req, res) => {
 
-    const {title, description, tag} = req.body;
-    
-    let newNote = {};
-    if(title){newNote.title = title};
-    if(description){newNote.description = description};
-    if(tag){newNote.tag = tag};
+    const { title, description, tag } = req.body;
+    try {
+        let newNote = {};
+        if (title) { newNote.title = title };
+        if (description) { newNote.description = description };
+        if (tag) { newNote.tag = tag };
 
-    let note = await Notes.findById(req.params.id);
-    if(!note){
-        return res.status(404).send({error: "Not Found"});
+        let note = await Notes.findById(req.params.id);
+        if (!note) {
+            return res.status(404).send({ error: "Not Found" });
+        }
+
+        if (note.user.toString() !== req.user.id) {
+            return res.status(401).send({ error: "Bad Request" });
+        }
+
+        note = await Notes.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true });
+
+        res.send(note);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
     }
 
-    if(note.user.toString() !== req.user.id){
-        return res.status(401).send({error: "Bad Request"});
+
+});
+
+// delete-note/:id
+router.delete('/delete-note/:id', GetUser, async (req, res) => {
+
+    try {
+
+        let note = await Notes.findById(req.params.id);
+        if (!note) {
+            return res.status(404).send({ error: "Not Found" });
+        }
+
+        if (note.user.toString() !== req.user.id) {
+            return res.status(401).send({ error: "Bad Request" });
+        }
+
+        note = await Notes.findByIdAndDelete(req.params.id);
+
+        res.send({ Success: "Deleted Successfully  ", note: note});
+    } catch (error) {
+        res.status(500).send({error: error, msg:error.message});
     }
-
-    note = await Notes.findByIdAndUpdate(req.params.id, {$set: newNote}, {new:true});
-
-    res.send(note);
-
 })
+
 module.exports = router;
