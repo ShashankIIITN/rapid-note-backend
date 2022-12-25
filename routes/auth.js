@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 require('dotenv').config();
 const GetUser = require('../middleware/getuser');
-const Token_Footer = process.env.REACT_APP_WEBTOKEN_FTCODE;
+const Token_Footer = "RapidNoteBySaitama";
 
 // create user : POST
 router.post('/create-user', [

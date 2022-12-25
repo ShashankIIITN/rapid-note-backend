@@ -45,7 +45,15 @@ router.get('/get-allnote', GetUser, async (req, res) => {
 
 // update-note/:id : put
 
-router.put('/update-note/:id', GetUser, async (req, res) => {
+router.put('/update-note/:id', GetUser, [
+    body('title', "Title field cant be empty").exists(),
+    body('description', "Description field cant be empty").exists()
+], async (req, res) => {
+
+    let valerrors = validationResult(req);
+    if (!valerrors.isEmpty()) {
+        return res.status(400).json({ errors: valerrors.array() });
+    }
 
     const { title, description, tag } = req.body;
     try {
@@ -64,8 +72,11 @@ router.put('/update-note/:id', GetUser, async (req, res) => {
         }
 
         note = await Notes.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true });
+        if (description.trim() === "" || title.trim() === "") {
 
-        res.send(note);
+            return res.status(401).send({ note, ok: false });
+        }
+        return res.status(200).send({note,  ok: true });    
     } catch (error) {
         res.status(500).send({ error: error.message });
     }
@@ -89,9 +100,9 @@ router.delete('/delete-note/:id', GetUser, async (req, res) => {
 
         note = await Notes.findByIdAndDelete(req.params.id);
 
-        res.send({ Success: "Deleted Successfully  ", note: note});
+        res.send({ Success: "Deleted Successfully  ", note: note });
     } catch (error) {
-        res.status(500).send({error: error, msg:error.message});
+        res.status(500).send({ error: error, msg: error.message });
     }
 })
 
