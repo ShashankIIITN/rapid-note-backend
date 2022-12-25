@@ -1,5 +1,7 @@
 var jwt = require('jsonwebtoken');
-const Token_Footer = "RapidNoteBySaitama";
+require('dotenv').config();
+
+const Token_Footer = process.env.REACT_APP_WEBTOKEN_FTCODE;
 
 const GetUser = (req, res, next) => {
     const AuthToken = req.header('auth_token');

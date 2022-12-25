@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-const mongooseURI = "mongodb+srv://New-User-forNote:user01@rapid-project-cluster.oova2ap.mongodb.net/rapiddatabase"
+const mongooseURI = process.env.REACT_APP_DATABASE_URI
 
 mongoose.set('strictQuery', true);
 const ConnectToDatabase = () => {
